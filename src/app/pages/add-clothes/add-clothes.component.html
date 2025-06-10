@@ -1,51 +1,66 @@
-<div class="container my-5">
-  <h2 class="text-center mb-4">Choose From Available Clothes</h2>
+<div class="container mt-5">
+  <div class="text-center mb-5">
+    <h1>Our Collection</h1>
+    <p class="lead text-muted">
+      Browse our master list and add your favorite items to your personal
+      wardrobe.
+    </p>
+  </div>
 
-  <ng-container *ngIf="itemsMaster$ | async as items">
-    <div *ngFor="let item of items; let last = last" class="category-section">
-      <h2 class="category-title">{{ item.id | titlecase }}</h2>
+  <ng-container *ngIf="itemsMaster$ | async as items; else loading">
+    <div *ngIf="items.length > 0; else noItems">
+      <div *ngFor="let item of items; let last = last" class="category-section">
+        <h2 class="category-title">{{ item.id | titlecase }}</h2>
+        <div class="row g-4">
+          <div
+            class="col-12 col-sm-6 col-md-4 col-lg-3"
+            *ngFor="let colorInfo of item.colors"
+          >
+            <div class="card h-100 shadow-sm">
+              <img
+                [src]="colorInfo.images[0]"
+                class="card-img-top"
+                alt="{{ colorInfo.name }}"
+              />
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ colorInfo.name | titlecase }}</h5>
+                <p class="card-text text-muted">Style: {{ colorInfo.style }}</p>
 
-      <div class="row g-4">
-        <div
-          class="col-12 col-sm-6 col-md-4 col-lg-3"
-          *ngFor="let colorInfo of item.colors"
-        >
-          <div class="card h-100 shadow-sm">
-            <img
-              [src]="colorInfo.images[0]"
-              class="card-img-top"
-              alt="{{ colorInfo.name }}"
-            />
-
-            <div class="card-body">
-              <div class="alert alert-info p-1 mb-2 text-center">
-                <strong style="font-size: 0.8rem"
-                  >Belongs To: {{ item.id | uppercase }}</strong
+                <button
+                  class="btn btn-outline-primary mt-auto"
+                  (click)="
+                    addToMyWardrobe({
+                      type: item.id,
+                      color: colorInfo.name,
+                      style: colorInfo.style,
+                      imageUrl: colorInfo.images[0]
+                    })
+                  "
                 >
+                  + Add to My Wardrobe
+                </button>
               </div>
-              <h5 class="card-title">{{ colorInfo.name | titlecase }}</h5>
-              <p class="card-text">
-                <strong>Style:</strong> {{ colorInfo.style }}
-              </p>
-
-              <button
-                class="btn btn-primary mt-auto"
-                (click)="
-                  addToMyWardrobe({
-                    type: item.id,
-                    color: colorInfo.name,
-                    style: colorInfo.style,
-                    imageUrl: colorInfo.images[0]
-                  })
-                "
-              >
-                Add to Wardrobe
-              </button>
             </div>
           </div>
         </div>
+        <hr *ngIf="!last" class="my-5" />
       </div>
-      <hr *ngIf="!last" class="my-5" />
     </div>
   </ng-container>
+
+  <ng-template #loading>
+    <div class="text-center mt-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading Collection...</p>
+    </div>
+  </ng-template>
+
+  <ng-template #noItems>
+    <div class="alert alert-warning text-center" role="alert">
+      No items found in the master collection. Please add some from the
+      Dashboard.
+    </div>
+  </ng-template>
 </div>

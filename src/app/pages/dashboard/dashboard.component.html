@@ -1,6 +1,5 @@
 <div class="container mt-5 mb-5">
-  <h2 class="mb-4">Add New Item Type</h2>
-
+  <h2 class="mb-4">Add New Item Type to Master List</h2>
   <form
     *ngIf="itemForm"
     [formGroup]="itemForm"
@@ -8,9 +7,7 @@
     novalidate
   >
     <div class="card mb-4">
-      <div class="card-header">
-        <h5>Basic Information</h5>
-      </div>
+      <div class="card-header"><h5>Basic Information</h5></div>
       <div class="card-body">
         <div class="mb-3">
           <label for="type" class="form-label"
@@ -23,22 +20,11 @@
             formControlName="type"
             placeholder="Enter item type"
           />
-          <div
-            *ngIf="
-              itemForm.get('type')?.invalid && itemForm.get('type')?.touched
-            "
-            class="text-danger mt-1"
-          >
-            Type is required.
-          </div>
         </div>
       </div>
     </div>
-
     <div class="card mb-4">
-      <div class="card-header">
-        <h5>Colors & Styles</h5>
-      </div>
+      <div class="card-header"><h5>Colors & Styles</h5></div>
       <div class="card-body" formArrayName="colors">
         <div
           *ngFor="let colorGroup of colors.controls; let i = index"
@@ -90,11 +76,8 @@
         </button>
       </div>
     </div>
-
     <div class="card mb-4">
-      <div class="card-header">
-        <h5>Seasons</h5>
-      </div>
+      <div class="card-header"><h5>Seasons</h5></div>
       <div class="card-body">
         <div class="d-flex gap-4" formArrayName="seasons">
           <div
@@ -113,22 +96,13 @@
             }}</label>
           </div>
         </div>
-        <div
-          *ngIf="
-            itemForm.get('seasons')?.invalid && itemForm.get('seasons')?.touched
-          "
-          class="text-danger mt-2"
-        >
-          At least one season must be selected.
-        </div>
       </div>
     </div>
-
     <div class="d-grid">
       <button
         type="submit"
         class="btn btn-success btn-lg"
-        [disabled]="isSubmitting"
+        [disabled]="isSubmitting || itemForm.invalid"
       >
         <span *ngIf="!isSubmitting">Add Item to Master List</span>
         <span

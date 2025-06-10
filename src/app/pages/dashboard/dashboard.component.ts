@@ -76,7 +76,6 @@ export class DashboardComponent implements OnInit {
   onSeasonChange(event: Event) {
     const seasonsArray: FormArray = this.itemForm.get('seasons') as FormArray;
     const checkbox = event.target as HTMLInputElement;
-
     if (checkbox.checked) {
       seasonsArray.push(new FormControl(checkbox.value));
     } else {
@@ -93,10 +92,8 @@ export class DashboardComponent implements OnInit {
       alert('Please fill all required fields.');
       return;
     }
-
     this.isSubmitting = true;
     const formValue = this.itemForm.value;
-
     this.fsService
       .addItemWithSeasons(formValue.type, formValue.colors, formValue.seasons)
       .then(() => {

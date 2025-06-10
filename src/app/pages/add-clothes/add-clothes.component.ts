@@ -1,8 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
+import {
+  CommonModule,
+  NgFor,
+  AsyncPipe,
+  TitleCasePipe,
+  NgIf,
+} from '@angular/common';
+import { Observable, firstValueFrom } from 'rxjs';
 import { FirestoreService } from '../../services/firestore.service';
-import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs';
-import { Auth, onAuthStateChanged } from '@angular/fire/auth';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-add-clothes',
@@ -12,34 +18,33 @@ import { Auth, onAuthStateChanged } from '@angular/fire/auth';
   styleUrls: ['./add-clothes.component.css'],
 })
 export class AddClothesComponent implements OnInit {
-  fsService: FirestoreService = inject(FirestoreService);
-  auth: Auth = inject(Auth);
+  private fsService = inject(FirestoreService);
+  private authService = inject(AuthService);
 
   itemsMaster$!: Observable<any[]>;
-  currentUserId: string | null = null;
 
   ngOnInit() {
     this.itemsMaster$ = this.fsService.getItemsMaster();
-
-    onAuthStateChanged(this.auth, (user) => {
-      if (user) {
-        this.currentUserId = user.uid;
-      } else {
-        this.currentUserId = null;
-        console.log('User is not logged in!');
-      }
-    });
   }
 
-  addToMyWardrobe(clothingItem: any) {
-    if (!this.currentUserId) {
-      alert('Please login first!');
-      return;
+  async addToMyWardrobe(clothingItem: any) {
+    // أولاً، نحصل على المستخدم الحالي للتأكد من أنه مسجل دخوله
+    const currentUser = await firstValueFrom(this.authService.authState$);
+
+    if (currentUser) {
+      // إذا كان المستخدم مسجلاً دخوله، نستدعي دالة الإضافة
+      try {
+        await this.fsService.addUserClothing(currentUser.uid, clothingItem);
+        alert(
+          `'${clothingItem.type} - ${clothingItem.color}' added to your wardrobe!`
+        );
+      } catch (error) {
+        console.error('Error adding document: ', error);
+        alert('Failed to add item. Please try again.');
+      }
+    } else {
+      // إذا لم يكن مسجلاً دخوله، نطلب منه ذلك
+      alert('Please login first to add items to your wardrobe.');
     }
-
-    console.log('Adding to wardrobe for user:', this.currentUserId);
-    console.log('Item to add:', clothingItem);
-
-    alert('Item added successfully (simulation)!');
   }
 }

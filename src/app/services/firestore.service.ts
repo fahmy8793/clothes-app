@@ -5,7 +5,8 @@ import {
   collectionData,
   doc,
   setDoc,
-  updateDoc,
+  addDoc,
+  serverTimestamp,
 } from '@angular/fire/firestore';
 import {
   Storage,
@@ -47,15 +48,22 @@ export class FirestoreService {
         const imageUrls = await Promise.all(
           imageFiles.map((file: File) => this.uploadImage(file))
         );
-        return {
-          name: color.name,
-          style: color.style,
-          images: imageUrls,
-        };
+        return { name: color.name, style: color.style, images: imageUrls };
       })
     );
 
     const docRef = doc(this.firestore, 'itemMster', type);
     return await setDoc(docRef, { colors: preparedColors, seasons: seasons });
+  }
+
+  async addUserClothing(userId: string, clothingData: any): Promise<void> {
+    const userClothesCollection = collection(
+      this.firestore,
+      `users/${userId}/clothes`
+    );
+    await addDoc(userClothesCollection, {
+      ...clothingData,
+      addedAt: serverTimestamp(),
+    });
   }
 }

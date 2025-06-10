@@ -1,54 +1,64 @@
-import { Component } from '@angular/core';
-import { Auth } from '@angular/fire/auth';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserSessionPersistence,
-} from 'firebase/auth';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common'; // Added for *ngIf support
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule], // Added CommonModule
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
+  styleUrls: ['./login.component.css'],
 })
-export class LoginComponent {
-  email: string = '';
-  password: string = '';
-  errorMessage: string = ''; // Added for error handling
+export class LoginComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(private auth: Auth, private router: Router) {}
+  loginForm!: FormGroup;
+  errorMessage: string = '';
+  isLoading: boolean = false;
 
-  onLogin() { // Removed Event parameter since we're not using form submission
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please fill all fields!';
+  ngOnInit(): void {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
+    });
+  }
+
+  onLogin() {
+    if (this.loginForm.invalid) {
+      this.errorMessage = 'Please enter a valid email and password.';
       return;
     }
 
-    setPersistence(this.auth, browserSessionPersistence)
-      .then(() => {
-        return signInWithEmailAndPassword(this.auth, this.email, this.password);
-      })
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const { email, password } = this.loginForm.value;
+
+    this.authService
+      .login(email, password)
       .then((userCredential) => {
+        this.isLoading = false;
         console.log('User logged in:', userCredential.user);
         this.router.navigate(['/dashboard']);
-        this.errorMessage = ''; // Clear any previous errors
       })
       .catch((error) => {
-        console.error('Error logging in:', error);
+        this.isLoading = false;
         this.handleLoginError(error);
       });
   }
 
   private handleLoginError(error: any): void {
+    console.error('Login Error Object:', error);
     switch (error.code) {
-      case 'auth/network-request-failed':
-        this.errorMessage = 'Network error. Please check your connection.';
-        break;
       case 'auth/invalid-credential':
         this.errorMessage = 'Invalid email or password.';
         break;
@@ -56,7 +66,8 @@ export class LoginComponent {
         this.errorMessage = 'Too many attempts. Try again later.';
         break;
       default:
-        this.errorMessage = 'Login failed. Please try again.';
+        this.errorMessage = `Login failed. Please try again. Error: ${error.code}`;
+        break;
     }
   }
 }

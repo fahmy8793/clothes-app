@@ -1,38 +1,66 @@
-import { Component } from '@angular/core';
-import { Auth } from '@angular/fire/auth';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.css',
+  styleUrls: ['./register.component.css'],
 })
-export class RegisterComponent {
-  email: string = '';
-  password: string = '';
-  errorMessage: string = '';
+export class RegisterComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(private auth: Auth, private router: Router) {}
+  registerForm!: FormGroup;
+  errorMessage: string = '';
+  isLoading: boolean = false;
+
+  ngOnInit(): void {
+    this.registerForm = this.fb.group({
+      displayName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+    });
+  }
 
   onRegister() {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please fill all fields!';
+    if (this.registerForm.invalid) {
+      this.errorMessage = 'Please fill all fields correctly.';
       return;
     }
-    createUserWithEmailAndPassword(this.auth, this.email, this.password)
+
+    this.isLoading = true;
+    this.errorMessage = '';
+    const { displayName, email, password } = this.registerForm.value;
+
+    this.authService
+      .register(email, password, displayName)
       .then((userCredential) => {
-        console.log('User registered:', userCredential.user);
+        this.isLoading = false;
+        console.log(
+          'User registered and profile created:',
+          userCredential.user
+        );
         this.router.navigate(['/dashboard']);
-        this.errorMessage = '';
       })
       .catch((error) => {
-        console.error('Error registering:', error.message);
-        this.errorMessage = error.message;
+        this.isLoading = false;
+        if (error.code === 'auth/email-already-in-use') {
+          this.errorMessage = 'This email is already registered.';
+        } else {
+          this.errorMessage = 'Registration failed. Please try again.';
+        }
+        console.error('Error registering:', error);
       });
   }
 }

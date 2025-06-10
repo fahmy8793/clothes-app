@@ -1,12 +1,38 @@
 <header class="navbar">
   <div class="container">
-    <div class="logo">MyApp</div>
-    <nav>
-      <ul class="nav-links">
-        <li><a routerLink="/home">Home</a></li>
-        <li><a routerLink="/about">About</a></li>
-        <li><a routerLink="/contact">Contact</a></li>
-      </ul>
-    </nav>
+    <a class="logo" routerLink="/">Smart Wardrobe</a>
+    <ng-container *ngIf="currentUser$ | async as user; else guestView">
+      <nav>
+        <ul class="nav-links">
+          <li>
+            <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+          </li>
+          <li>
+            <a routerLink="/addclothes" routerLinkActive="active"
+              >Add Clothes</a
+            >
+          </li>
+          <li class="user-email">
+            <span>{{ user.email }}</span>
+          </li>
+          <li>
+            <button class="logout-button" (click)="logout()">Logout</button>
+          </li>
+        </ul>
+      </nav>
+    </ng-container>
+
+    <ng-template #guestView>
+      <nav>
+        <ul class="nav-links">
+          <li>
+            <a routerLink="/login" routerLinkActive="active">Login</a>
+          </li>
+          <li>
+            <a routerLink="/register" routerLinkActive="active">Register</a>
+          </li>
+        </ul>
+      </nav>
+    </ng-template>
   </div>
 </header>
