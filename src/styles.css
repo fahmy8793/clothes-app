@@ -1,4 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+/* You can add global styles to this file, and also import other style files
 .form-container {
   max-width: 400px;
   margin: 50px auto;
@@ -58,4 +58,4 @@ button:disabled {
 
 button:hover:not(:disabled) {
   background-color: #0056b3;
-}
+} */

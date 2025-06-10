@@ -1,1 +1,51 @@
-<p>dashboard works!</p>
+<form (ngSubmit)="submitItem()">
+  <div>
+    <label>Type:</label>
+    <input type="text" [(ngModel)]="type" name="type" required />
+  </div>
+
+  <label>Colors:</label>
+  <div *ngFor="let color of colors; let i = index">
+    <div>
+      <label>Name:</label>
+      <input
+        type="text"
+        [(ngModel)]="colors[i].name"
+        [name]="'colorName' + i"
+      />
+    </div>
+    <div>
+      <label>Style:</label>
+      <input
+        type="text"
+        [(ngModel)]="colors[i].style"
+        [name]="'colorStyle' + i"
+      />
+    </div>
+    <div>
+      <label>Images:</label>
+      <input type="file" (change)="addImage(i, $event)" multiple />
+    </div>
+    <button
+      type="button"
+      (click)="removeColor(i)"
+      class="btn btn-close"
+    ></button>
+  </div>
+  <button type="button" (click)="addColor()" class="btn btn-primary">
+    + Add Color
+  </button>
+
+  <label>Seasons:</label>
+  <div *ngFor="let season of availableSeasons">
+    <input
+      type="checkbox"
+      [id]="'season' + season"
+      (change)="onSeasonChange($event, season)"
+    />
+    <label [for]="'season' + season">{{ season }}</label>
+  </div>
+
+  <br /><br />
+  <button type="submit" class="btn btn-success">Add Item</button>
+</form>
