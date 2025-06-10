@@ -1,45 +1,45 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FirestoreService } from '../../services/firestore.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-add-clothes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './add-clothes.component.html',
+  styleUrls: ['./add-clothes.component.css'],
 })
 export class AddClothesComponent implements OnInit {
-  itemsMaster: any[] = [];
-  selectedType: string = '';
-  selectedColor: any = null;
-  selectedColors: any[] = []; // مصفوفة للألوان بناءً على النوع المختار
+  fsService: FirestoreService = inject(FirestoreService);
+  auth: Auth = inject(Auth);
 
-  constructor(private fsService: FirestoreService) {}
+  itemsMaster$!: Observable<any[]>;
+  currentUserId: string | null = null;
 
   ngOnInit() {
-    this.fsService.getItemsMaster().subscribe((data) => {
-      this.itemsMaster = data;
-      this.updateSelectedColors(); // تحديث الألوان عندما تتحمل البيانات
+    this.itemsMaster$ = this.fsService.getItemsMaster();
+
+    onAuthStateChanged(this.auth, (user) => {
+      if (user) {
+        this.currentUserId = user.uid;
+      } else {
+        this.currentUserId = null;
+        console.log('User is not logged in!');
+      }
     });
   }
 
-  onTypeChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    this.selectedType = select.value;
-    this.updateSelectedColors(); // تحديث الألوان عند تغيير النوع
-    this.selectedColor = null; // إعادة تعيين الـ Color
-  }
+  addToMyWardrobe(clothingItem: any) {
+    if (!this.currentUserId) {
+      alert('Please login first!');
+      return;
+    }
 
-  onColorChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const colorName = select.value;
-    this.selectedColor =
-      this.selectedColors.find((c: any) => c.name === colorName) || null;
-  }
+    console.log('Adding to wardrobe for user:', this.currentUserId);
+    console.log('Item to add:', clothingItem);
 
-  private updateSelectedColors() {
-    const item = this.itemsMaster.find((item) => item.id === this.selectedType);
-    this.selectedColors = item?.colors || [];
+    alert('Item added successfully (simulation)!');
   }
 }

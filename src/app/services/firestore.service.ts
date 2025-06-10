@@ -1,21 +1,37 @@
-import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { Injectable, inject } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  setDoc,
+  updateDoc,
+} from '@angular/fire/firestore';
+import {
+  Storage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from '@angular/fire/storage';
 import { v4 as uuidv4 } from 'uuid';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class FirestoreService {
-  constructor(
-    private firestore: AngularFirestore,
-    private storage: AngularFireStorage
-  ) {}
+  private firestore: Firestore = inject(Firestore);
+  private storage: Storage = inject(Storage);
 
-  async uploadImage(file: File): Promise<string> {
+  getItemsMaster() {
+    const itemsCollection = collection(this.firestore, 'itemMster');
+    return collectionData(itemsCollection, { idField: 'id' });
+  }
+
+  private async uploadImage(file: File): Promise<string> {
     const path = `clothes/${uuidv4()}_${file.name}`;
-    const ref = this.storage.ref(path);
-    const task = ref.put(file);
-    await task;
-    return await ref.getDownloadURL().toPromise();
+    const storageRef = ref(this.storage, path);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
   }
 
   async addItemWithSeasons(
@@ -25,10 +41,12 @@ export class FirestoreService {
   ): Promise<void> {
     const preparedColors = await Promise.all(
       colors.map(async (color) => {
+        const imageFiles = Array.isArray(color.imageFiles)
+          ? color.imageFiles
+          : [];
         const imageUrls = await Promise.all(
-          color.imageFiles.map((file: File) => this.uploadImage(file))
+          imageFiles.map((file: File) => this.uploadImage(file))
         );
-
         return {
           name: color.name,
           style: color.style,
@@ -37,15 +55,7 @@ export class FirestoreService {
       })
     );
 
-    await this.firestore
-      .collection('itemMster')
-      .doc(type)
-      .set({ colors: preparedColors, seasons: seasons }, { merge: true });
-  }
-
-  getItemsMaster() {
-    return this.firestore
-      .collection('itemMster')
-      .valueChanges({ idField: 'id' });
+    const docRef = doc(this.firestore, 'itemMster', type);
+    return await setDoc(docRef, { colors: preparedColors, seasons: seasons });
   }
 }

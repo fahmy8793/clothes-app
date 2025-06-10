@@ -1,35 +1,51 @@
-<div class="form-container">
-  <h2>Add Clothes</h2>
-  <form>
-    <div class="form-group">
-      <label for="type">Type:</label>
-      <select id="type" (change)="onTypeChange($event)" required>
-        <option value="">Select Type</option>
-        <option *ngFor="let item of itemsMaster" [value]="item.id">
-          {{ item.id }}
-        </option>
-      </select>
-    </div>
+<div class="container my-5">
+  <h2 class="text-center mb-4">Choose From Available Clothes</h2>
 
-    <div class="form-group" *ngIf="selectedType">
-      <label for="color">Color:</label>
-      <select id="color" (change)="onColorChange($event)" required>
-        <option value="">Select Color</option>
-        <option *ngFor="let color of selectedColors" [value]="color.name">
-          {{ color.name }}
-        </option>
-      </select>
-    </div>
+  <ng-container *ngIf="itemsMaster$ | async as items">
+    <div *ngFor="let item of items; let last = last" class="category-section">
+      <h2 class="category-title">{{ item.id | titlecase }}</h2>
 
-    <div class="form-group" *ngIf="selectedColor">
-      <label>Images:</label>
-      <div *ngFor="let imageUrl of selectedColor.images; let i = index">
-        <img [src]="imageUrl" alt="Clothing Image" style="max-width: 100px" />
+      <div class="row g-4">
+        <div
+          class="col-12 col-sm-6 col-md-4 col-lg-3"
+          *ngFor="let colorInfo of item.colors"
+        >
+          <div class="card h-100 shadow-sm">
+            <img
+              [src]="colorInfo.images[0]"
+              class="card-img-top"
+              alt="{{ colorInfo.name }}"
+            />
+
+            <div class="card-body">
+              <div class="alert alert-info p-1 mb-2 text-center">
+                <strong style="font-size: 0.8rem"
+                  >Belongs To: {{ item.id | uppercase }}</strong
+                >
+              </div>
+              <h5 class="card-title">{{ colorInfo.name | titlecase }}</h5>
+              <p class="card-text">
+                <strong>Style:</strong> {{ colorInfo.style }}
+              </p>
+
+              <button
+                class="btn btn-primary mt-auto"
+                (click)="
+                  addToMyWardrobe({
+                    type: item.id,
+                    color: colorInfo.name,
+                    style: colorInfo.style,
+                    imageUrl: colorInfo.images[0]
+                  })
+                "
+              >
+                Add to Wardrobe
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+      <hr *ngIf="!last" class="my-5" />
     </div>
-
-    <button type="submit" [disabled]="!selectedColor" class="btn btn-success">
-      Add to My Clothes
-    </button>
-  </form>
+  </ng-container>
 </div>
