@@ -1,11 +1,30 @@
-<div>
-  <h2>Login</h2>
-  <input type="email" [(ngModel)]="email" placeholder="Email" required />
-  <input
-    type="password"
-    [(ngModel)]="password"
-    placeholder="Password"
-    required
-  />
-  <button (click)="onLogin($event)">Login</button>
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Login</h2>
+    <div class="form-group">
+      <label for="login-email">Email</label>
+      <input
+        id="login-email"
+        type="email"
+        [(ngModel)]="email"
+        placeholder="Enter your email"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="login-password">Password</label>
+      <input
+        id="login-password"
+        type="password"
+        [(ngModel)]="password"
+        placeholder="Enter your password"
+        required
+      />
+    </div>
+    <button class="auth-button" (click)="onLogin()">Login</button>
+    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <div class="auth-footer">
+      <p>Don't have an account? <a routerLink="./Register">Register</a></p>
+    </div>
+  </div>
 </div>
